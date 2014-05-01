@@ -1,0 +1,230 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>MagicUI by SteBeeGizmo</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/main.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+
+      <header>
+        <h1>MagicUI</h1>
+        <p>A framework for rapidly prototyping Unity user interfaces</p>
+      </header>
+
+      <div id="banner">
+        <span id="logo"></span>
+
+        <a href="https://github.com/SteBeeGizmo/MagicUI" class="button fork"><strong>View On GitHub</strong></a>
+        <div class="downloads">
+          <span>Downloads:</span>
+          <ul>
+            <li><a href="https://github.com/SteBeeGizmo/MagicUI/zipball/master" class="button">ZIP</a></li>
+            <li><a href="https://github.com/SteBeeGizmo/MagicUI/tarball/master" class="button">TAR</a></li>
+          </ul>
+        </div>
+      </div><!-- end banner -->
+
+    <div class="wrapper">
+      <nav>
+        <ul></ul>
+      </nav>
+      <section>
+        <h2>
+<a name="magicui" class="anchor" href="#magicui"><span class="octicon octicon-link"></span></a>MagicUI</h2>
+
+<h4>
+<a name="a-framework-for-rapidly-prototyping-unity-user-interfaces" class="anchor" href="#a-framework-for-rapidly-prototyping-unity-user-interfaces"><span class="octicon octicon-link"></span></a>A framework for rapidly prototyping Unity user interfaces</h4>
+
+<p>Gizmocracy only has one coder (hi there!), so I spend a lot of my time developing tools to shift work from my backlog to others'. This is especially important when we're in the rapid-prototyping phase of a game--I found I was spending more time doing UI development than coding actual gameplay. The Unity editor can technically do anything, but it's cluttered with lots of features a designer doesn't need... plus, to be brutally honest, we didn't want to drop three grand on a second seat.</p>
+
+<p>The MagicUI system fills our need by rendering a layout defined in an online UI prototyping (or "wireframing") tool. Originally we were using <a href="http://balsamiq.com/">Balsamiq</a>, but after the first draft of this system was developed, a new service called <a href="http://ninjamock.com/">NinjaMock</a> came online and we switched to that. Because the service is online, multiple people can access it, and layouts can be fetched by the client directly through an Internet connection.</p>
+
+<p>At runtime, the client fetches the specified NinjaMock project and then renders all the pages as collections of NGUI controls, using a skin (basically an NGUI sprite atlas) set at compile time. Button links defined in the wireframe project are automatically live and functional in the client, and editable controls write their values to a global lookup table that can be accessed by code. All the programmer has to do is write code that checks the lookup table for changes values and reacts appropriately. For example, the music system monitors the "music" value in the table and uses it to set the volume. Any place the designer places a control named "music", that control now controls the volume level--not only can the designer move the control to different screens as the UI is refined, the control type itself can be changed without altering any of the program's functionality.</p>
+
+<h3>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h3>
+
+<p>Getting started with MagicUI isn't particularly difficult, but it's got a number of manual steps that I haven't bothered to automate yet. I suggest getting a test of the system working in a blank project, then exporting it as a package so that you can fire up new projects quickly.</p>
+
+<ol>
+<li>
+<strong>Install Prerequisites</strong>. MagicUI depends on some other code, most notably the excellent NGUI.</li>
+<li>
+<strong>Copy Code</strong>. Clone the repo and copy its code over to your project.</li>
+<li>
+<strong>Create a Skin</strong>. Skins are how MagicUI organizes sprites and fonts. You can have multiple skins and switch between them at compile time, but you have to have at least one.</li>
+<li>
+<strong>Set Up the Singleton</strong>. The MagicUI system is driven by a master class, MagicUIManager, that exists as a singleton component in your UI scene.</li>
+<li>
+<strong>Set Up the String Table</strong> (optional). MagicUI treats the strings and text you enter into NinjaMock not as literal text but as control names. You can define a string table to translate these names into human-readable text, or for prototyping you can skip that and rely on savvy users to know what you're talking about.</li>
+<li>
+<strong>Wire Up Behavior</strong> (optional). Basic functionality--jumping from page to page, remembering the values of controls--is provided automatically. To wire that functionality into your app you'll have to write code, but your designers can test and refine the layout without any involvement from you.</li>
+</ol><h4>
+<a name="install-prerequisites" class="anchor" href="#install-prerequisites"><span class="octicon octicon-link"></span></a>Install Prerequisites</h4>
+
+<ol>
+<li>
+<strong><a href="http://u3d.as/content/tasharen-entertainment/ngui-next-gen-ui/2vh">NGUI</a></strong>. Doesn't everyone have this already?</li>
+<li>
+<strong><a href="https://www.assetstore.unity3d.com/#/content/710">JSONObject</a></strong>. There's several different JSON parsers out there (including one built into NGUI); I happen to like this one. It wouldn't be too onerous to replace it with your own favorite.</li>
+<li>
+<strong>My <a href="http://stebeegizmo.github.io/Singleton/">Singleton</a> framework</strong>. The MagicUI system is a local-scope singleton, and it relies on the DebugManager singleton for error reporting.</li>
+<li>
+<strong>A <a href="http://ninjamock.com/">NinjaMock</a> account</strong>. You can experiment for free, and a pro account (required for continued use) is on sale for $10 a month right now, down from the usual $15/month.</li>
+</ol><h4>
+<a name="copy-code" class="anchor" href="#copy-code"><span class="octicon octicon-link"></span></a>Copy Code</h4>
+
+<p>Clone this repo, then copy the .cs files to your project. In theory, as of 4.3.4 it's possible to symlink a folder to share code across multiple projects. I haven't had the courage to try that yet, but it's a feature I desperately want, so I'll explore it sometime in the next few weeks and update these instructions if it works.</p>
+
+<h4>
+<a name="create-a-skin" class="anchor" href="#create-a-skin"><span class="octicon octicon-link"></span></a>Create a Skin</h4>
+
+<p>A MagicUI skin is an NGUI atlas with an additional component. Create the UIAtlas as normal, select the resulting prefab, then hit Add Component and find "MagicUI &gt; Skin" in the popup. You'll then need to fill in some fields on the new component:</p>
+
+<ul>
+<li>
+<strong>Definition</strong>: This is a JSON file that tells MagicUI what frames from your atlas map should be used for various controls. More information on this file is under "skin.json" below.</li>
+<li>
+<strong>Font Parameters</strong>: Font handling is a work in progress in MagicUI, so there's some clutter here. The fields you need to worry about right now are Font, which should be a TTF or OTF font, and Default Color (if black isn't suitable for your backgrounds).</li>
+<li>
+<strong>Target DPI</strong>: You can specify a DPI value for each skin, and MagicUI will select the skin that best matches your device's resolution. Or you can just ignore this, because the default value will work fine.</li>
+<li>
+<strong>Background</strong>: Drag in a Texture2D that will be used as the static background for the UI. Right now, MagicUI will just tile or crop this texture as needed. If you want a more sophisticated background than that, leave this field blank and create the background in your scene manually.</li>
+<li>
+<strong>Primary Color</strong>: All controls will be set to this color. If your source art is in color rather than monochrome, just leave this field at its default value of white.</li>
+</ul><h5>
+<a name="skinjson" class="anchor" href="#skinjson"><span class="octicon octicon-link"></span></a>skin.json</h5>
+
+<p>A skin-definition JSON file looks like this:</p>
+
+<div class="highlight highlight-json"><pre><span class="p">{</span><span class="nt">"skin"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">"copyrightSafe"</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nt">"mapping"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">"button"</span><span class="p">:</span> <span class="p">{</span> <span class="nt">"on"</span><span class="p">:</span> <span class="s2">"button_enabled"</span><span class="p">,</span> <span class="nt">"margin"</span><span class="p">:</span> <span class="p">{</span><span class="nt">"x"</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span> <span class="nt">"y"</span><span class="p">:</span> <span class="mi">10</span><span class="p">}</span> <span class="p">},</span>
+        <span class="nt">"checkbox"</span><span class="p">:</span> <span class="p">{</span> <span class="nt">"checkedOn"</span><span class="p">:</span> <span class="s2">"checkbox_checked_enabled"</span><span class="p">,</span> <span class="nt">"uncheckedOn"</span><span class="p">:</span> <span class="s2">"checkbox_unchecked_enabled"</span> <span class="p">},</span>
+        <span class="nt">"slider"</span><span class="p">:</span>  <span class="p">{</span> <span class="nt">"thumb"</span><span class="p">:</span> <span class="s2">"slider_thumb"</span><span class="p">,</span> <span class="nt">"bar"</span><span class="p">:</span> <span class="s2">"slider_empty"</span><span class="p">,</span> <span class="nt">"fg"</span><span class="p">:</span> <span class="s2">"slider_full"</span> <span class="p">},</span>
+        <span class="nt">"textbox"</span><span class="p">:</span> <span class="p">{</span> <span class="nt">"on"</span><span class="p">:</span> <span class="s2">"textbox_enabled"</span><span class="p">,</span> <span class="nt">"fgInvert"</span><span class="p">:</span> <span class="kc">true</span> <span class="p">},</span>
+        <span class="nt">"rectangle"</span><span class="p">:</span> <span class="p">{</span> <span class="nt">"on"</span><span class="p">:</span> <span class="s2">"rectangle_enabled"</span> <span class="p">},</span>
+        <span class="nt">"image"</span><span class="p">:</span> <span class="p">{</span> <span class="nt">"missing"</span><span class="p">:</span> <span class="s2">"missing_image"</span> <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}}</span>
+</pre></div>
+
+<p>The "copyrightSafe" field lets you mark whether a particular skin is redistributable. It defaults to true, but if the skin's copyrightSafe is false, then production builds will terminate with an error message when they load the skin.</p>
+
+<p>The "mapping" dictionary is of course the guts of the file:</p>
+
+<ul>
+<li>
+<strong>button</strong>: The "on" field specifies the frame to use as the background of buttons. You can optionally specify "margin" to make the label smaller than the background. If your art has extra detail that spills outside of the button's rectangular frame (such as scrollwork outside the edges of buttons in a steampunk UI), specify the size of that art with "chrome". Both "margin" and "chrome" specify the <em>total</em> padding, with left and right or top and bottom added together, and they can be specified for all controls (not just buttons).</li>
+<li>
+<strong>checkbox</strong>: The "checkedOn" field is for the checked frame, the "uncheckedOn" field for the unchecked one. MagicUI replaces the unchecked frame with the checked one; providing an option here of having the checked frame superimposed over the unchecked frame is in my backlog.</li>
+<li>
+<strong>slider</strong>: MagicUI draws the "bar" frame, then stretches the "fg" frame to the current value, then draws the "thumb" frame. NGUI doesn't like using sliced sprites for filled sliders, so sliders is an area that needs a lot more work right now.</li>
+<li>
+<strong>textbox</strong>: MagicUI draws the "on" frame and then puts the label on top of it. The "fgInvert" bool defaults to false; if true, the text label uses the "Alternate Color" set under Font Parameters.</li>
+<li>
+<strong>rectangle</strong>: Draws the "on" frame wherever you place a rectangle in NinjaMock.</li>
+<li>
+<strong>image</strong>: Whenever you specify an icon or an image in NinjaMock, MagicUI takes the URL and strips away all the path and file extension information to get a frame name. For example, if you have an icon for <code>https://cdn3.iconfinder.com/data/icons/free-social-icons/67/facebook_circle_color-64.png</code>, MagicUI will look in your atlas for a sprite named <code>facebook_circle_color-64</code>. If it can't find that frame, <em>and you're running a debug build</em>, it fetches the image live from the provided URL. If that fetch fails, or if you're running a production build, then MagicUI falls back to the "missing" frame specified here.</li>
+</ul><h4>
+<a name="set-up-the-singleton" class="anchor" href="#set-up-the-singleton"><span class="octicon octicon-link"></span></a>Set Up the Singleton</h4>
+
+<p>Use the NGUI menu to create a UI, add a MagicUIManager component to it, then fill in the necessary fields:</p>
+
+<ul>
+<li>
+<strong>Layouts</strong>: There are four groups of layouts--phone and tablet landscape, and phone and tablet portrait. Within each one, there are fields for aspect ratios ranging from 4x3 to 16x9. <em>You do not need to fill in every aspect ratio, and you **definitely*</em> don't need to fill in every layout!* MagicUI will fall back as far as it needs to to find a layout. The variety of layout fields is just here to allow you to customize your UI beyond what the anchoring system already provides. For example, you might want to pack more smaller controls onto the screen on tablets, or you might want to add a sidebar when in landscape mode on wide screens.
+As for what actually goes into these fields, it's the URL NinjaMock gives you when you share a project. When you hit the "Share" button in NinjaMock, you get a popup that gives you an URL that looks something like <code>http://ninjamock.com/s/dpmvcu</code>. Paste that value into one or more of the aspect fields in one or more of the MagicUIManager's layout groups.</li>
+<li>
+<strong>Skins</strong>: This is just an array of MagicUISkin objects. Drag and drop the skin prefab here. MagicUI will pick the skin that best matches the device's DPI.</li>
+<li>
+<strong>String Table</strong>: This is a simple JSON file--see "strings.json" below.</li>
+<li>
+<strong>API</strong>: Create an empty GameObject and attach a NinjaMockAPI component to it, then drag that GameObject into this field. And yes, this is silly and cumbersome; having the manager automatically create the API is high in my backlog.</li>
+<li>
+<strong>Background</strong>: Create an NGUI UITexture object, make it a child of your UI Root and drag it into this field. Or if you want to handle the background yourself (either because you want more complex art for it than just a tile, or because you are overlaying this UI atop a 3D environment), just leave this field blank.</li>
+</ul><h5>
+<a name="stringsjson" class="anchor" href="#stringsjson"><span class="octicon octicon-link"></span></a>strings.json</h5>
+
+<p>The string table JSON looks like this:</p>
+
+<div class="highlight highlight-json"><pre><span class="p">{</span><span class="nt">"languages"</span><span class="p">:</span> <span class="p">{</span>
+
+<span class="nt">"English"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">"page1textblock"</span><span class="p">:</span> <span class="s2">"This is a field with a large amount of text. The text has punctuation and will occupy multiple lines, but I'm not sure yet what will happen to the font."</span><span class="p">,</span>
+    <span class="nt">"RandomText"</span><span class="p">:</span> <span class="s2">"© 2014 Gizmocracy LLC"</span><span class="p">,</span>
+    <span class="nt">"Account Info"</span><span class="p">:</span> <span class="s2">"Account Info"</span><span class="p">,</span>
+    <span class="nt">"Your Avatar"</span><span class="p">:</span> <span class="s2">"Your Avatar"</span><span class="p">,</span>
+    <span class="nt">"the_text_field"</span><span class="p">:</span> <span class="s2">"Say something..."</span>
+<span class="p">},</span>
+
+<span class="nt">"German"</span><span class="p">:</span> <span class="p">{</span>
+    <span class="nt">"page1textblock"</span><span class="p">:</span> <span class="s2">"Dies ist ein Bereich mit einer großen Textmenge. Der Text hat Zeichensetzung und wird mehrere Zeilen einnehmen, aber ich bin noch nicht sicher, was mit der Schrift geschieht."</span><span class="p">,</span>
+    <span class="nt">"RandomText"</span><span class="p">:</span> <span class="s2">"© 2014 Gizmocracy LLC"</span><span class="p">,</span>
+    <span class="nt">"Account Info"</span><span class="p">:</span> <span class="s2">"Kundendaten"</span><span class="p">,</span>
+    <span class="nt">"Your Avatar"</span><span class="p">:</span> <span class="s2">"Ihr Avatar"</span><span class="p">,</span>
+    <span class="nt">"the_text_field"</span><span class="p">:</span> <span class="s2">"Sagen Sie etwas..."</span>
+<span class="p">}</span>
+
+<span class="p">}}</span>
+</pre></div>
+
+<p>Each key in the "languages" field is just the language name, as supplied by Unity's <code>Application.systemLanguage</code> enum. (In a rational world, this would be a standard IETF language tag like en-US or de-DE, but that's not where we live.) Within a language's dictionary, the keys are the literal text from the NinjaMock controls. If MagicUI can't find a matching value for a text key, it just displays the key in quotation marks.</p>
+
+<h4>
+<a name="wire-up-behavior" class="anchor" href="#wire-up-behavior"><span class="octicon octicon-link"></span></a>Wire Up Behavior</h4>
+
+<p>At this point, having performed all the above steps, you can press play and see your UI come to life. If you've created multiple pages in NinjaMock and used links to navigate between them, those links are automatically honored in MagicUI.</p>
+
+<p>Changes made to controls in the UI are written to a global lookup table, which your code then accesses through the MagicUIManager. Sliders set a value from 0 (leftmost) to 1 (rightmost). Checkboxes are true or false. Text fields contain their text. Buttons are true as long as they're pressed, then revert to false. To access a value, call <code>MagicUIManager.Instance.ReadX(key)</code>, where <code>X</code> is <code>String</code>, <code>Bool</code>, <code>Float</code> or <code>Int</code>.</p>
+
+<p>For example, let's say you want a button in your UI that reloads the scene from scratch, so that any changes you made in NinjaMock get reloaded and displayed. (This is a very common scenario during development, so much so that I really ought to just wire it up as default behavior.) To do that, create a button somewhere in your UI with the label "Refresh", then attach this component to an object somewhere in your scene:</p>
+
+<div class="highlight highlight-csharp"><pre><span class="k">using</span> <span class="nn">UnityEngine</span><span class="p">;</span>
+<span class="k">using</span> <span class="nn">System.Collections</span><span class="p">;</span>
+
+<span class="k">public</span> <span class="k">class</span> <span class="nc">MagicRefresh</span> <span class="p">:</span> <span class="n">MonoBehaviour</span>
+<span class="p">{</span>
+    <span class="k">protected</span> <span class="kt">bool</span> <span class="n">_reloading</span> <span class="p">=</span> <span class="k">false</span><span class="p">;</span>
+
+    <span class="k">void</span> <span class="nf">Update</span> <span class="p">()</span>
+    <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(!</span><span class="n">_reloading</span><span class="p">)</span>
+        <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">MagicUIManager</span><span class="p">.</span><span class="n">Instance</span><span class="p">.</span><span class="n">ReadBool</span><span class="p">(</span><span class="s">"Refresh"</span><span class="p">))</span>
+            <span class="p">{</span>
+                <span class="n">_reloading</span> <span class="p">=</span> <span class="k">true</span><span class="p">;</span>
+                <span class="n">Application</span><span class="p">.</span><span class="n">LoadLevel</span><span class="p">(</span><span class="m">0</span><span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+<p>A future version of the system will allow you to subscribe to update events so that you don't have to poll.</p>
+
+<h3>
+<a name="next-steps" class="anchor" href="#next-steps"><span class="octicon octicon-link"></span></a>Next Steps</h3>
+
+<p>Ugh, too many to list right now.</p>
+      </section>
+      <footer>
+        <p>Project maintained by <a href="https://github.com/SteBeeGizmo">SteBeeGizmo</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://twitter.com/michigangraham">mattgraham</a></small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
