@@ -24,6 +24,11 @@ public class MagicUIManager : Singleton<MagicUIManager>
 			return false;
 		}
 	}
+
+	void OnDestroy()
+	{
+		onDestroy();
+	}
 	#endregion
 
 	protected UIRoot _root;
@@ -407,7 +412,8 @@ public class MagicUIManager : Singleton<MagicUIManager>
 
 			// IF NO DEFAULT, GET DEFAULT FROM CONTROL
 			val = control.DefaultValue;
-			Write(key, val, control);
+			if (val != null)
+				Write(key, val, control);
 		}
 
 		return val;
@@ -432,9 +438,11 @@ public class MagicUIManager : Singleton<MagicUIManager>
 			return;
 
 		if (val == null)
-			val = "";
+			return;
 
 		_valuesTable[key] = val;
+
+		DebugManager.Log ("{0} = {1}", key, val);
 
 		List<MagicUIControl> targets = null;
 		if (_notificationTargets.ContainsKey(key))
@@ -459,6 +467,50 @@ public class MagicUIManager : Singleton<MagicUIManager>
 	{
 		Write (key, val.ToString(), exclude);
 	}
+
+	public bool ReadBool(string key)
+	{
+		string val = ReadString(key);
+		if (string.IsNullOrEmpty(val))
+			return false;
+
+		bool result = false;
+		if (bool.TryParse(val, out result))
+			return result;
+		else
+			return !Mathf.Approximately(0, ReadFloat(key));
+	}
+
+	public int ReadInt(string key)
+	{
+		float val = ReadFloat(key);
+		if (float.IsNaN(val))
+			return 0;
+		else
+			return Mathf.RoundToInt(val);
+	}
+
+	public float ReadFloat(string key)
+	{
+		string val = ReadString (key);
+		float result = float.NaN;
+
+		if (val != null)
+		{
+			float.TryParse(val, out result);
+		}
+
+		return result;
+	}
+
+	public string ReadString(string key)
+	{
+		if (_valuesTable.ContainsKey(key))
+			return _valuesTable[key];
+		else
+			return null;
+	}
+
 	#endregion
 
 	public void ShowPage(string page)

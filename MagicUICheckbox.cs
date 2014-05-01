@@ -32,14 +32,6 @@ public class MagicUICheckbox : MagicUIControl
 		isOn = on;
 	}
 
-	public override string DefaultValue
-	{
-		get
-		{
-			return "false";
-		}
-	}
-	
 	void OnClick()
 	{
 		isOn = !isOn;
@@ -79,6 +71,27 @@ public class MagicUICheckbox : MagicUIControl
 		}
 	}
 	
+	public override string DefaultValue
+	{
+		get
+		{
+			return "false";
+		}
+	}
+
+	public override string Value
+	{
+		get
+		{
+			return baseValueHandler;
+		}
+		
+		set
+		{
+			baseValueHandler = value;
+		}
+	}
+	
 	protected Vector2 _chrome;
 	protected override void initialize(JSONObject markup)
 	{
@@ -96,13 +109,13 @@ public class MagicUICheckbox : MagicUIControl
 
 		UISpriteData data = MagicUIManager.Instance.Skin.Atlas.GetSprite(_sprite.spriteName);
 		
-		_chrome = Vector4.zero;
-		
-		_chrome.x = frameData.GetFloatSafely("left", 0) + frameData.GetFloatSafely("right", 0);
-		_chrome.x = data.width / (data.width - _chrome.x);
-		
-		_chrome.y = frameData.GetFloatSafely("top", 0) + frameData.GetFloatSafely("bottom", 0);
-		_chrome.y = data.height / (data.height - _chrome.y);
+		_chrome = Vector2.one;
+		if (frameData.keys.Contains("chrome"))
+		{
+			_chrome = frameData["chrome"].GetVector2();
+			_chrome.x = data.width / (data.width - _chrome.x);
+			_chrome.y = data.height / (data.height - _chrome.y);
+		}
 	}
 	
 	public static MagicUICheckbox Create()

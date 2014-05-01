@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
+[AddComponentMenu("MagicUI/Skin")]
 public class MagicUISkin : MonoBehaviour
 {
 	public TextAsset Definition;

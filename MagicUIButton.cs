@@ -18,6 +18,27 @@ public class MagicUIButton : MagicUIControl
 		return _isPressed.ToString();
 	}
 
+	public override string DefaultValue
+	{
+		get
+		{
+			return "false";
+		}
+	}
+
+	public override string Value
+	{
+		get
+		{
+			return baseValueHandler;
+		}
+
+		set
+		{
+			baseValueHandler = value;
+		}
+	}
+
 	protected bool _isPressed;
 	void OnPress(bool isDown)
 	{
@@ -40,8 +61,17 @@ public class MagicUIButton : MagicUIControl
 		pos.y = extents.y - (extents.height * 0.5f);
 		transform.localPosition = pos;
 
-		_sprite.width = Mathf.RoundToInt(extents.width * _chrome.x);
-		_sprite.height = Mathf.RoundToInt(extents.height * _chrome.y);
+		bool iconOnly = false;
+
+		if (_sprite != null)
+		{
+			_sprite.width = Mathf.RoundToInt(extents.width * _chrome.x);
+			_sprite.height = Mathf.RoundToInt(extents.height * _chrome.y);
+		}
+		else
+		{
+			iconOnly = true;
+		}
 
 		Rect centeredExtents = extents;
 		centeredExtents.width -= _margin.x;
@@ -56,13 +86,17 @@ public class MagicUIButton : MagicUIControl
 
 		if (_icon != null)
 		{
-			_icon.SetExtents(centeredExtents);
+			if (iconOnly)
+				_icon.SetExtents(extents);
+			else
+				_icon.SetExtents(centeredExtents);
 		}
 	}
 	
 	protected override void setZOrder(int z)
 	{
-		_sprite.depth = z;
+		if (_sprite != null)
+			_sprite.depth = z;
 
 		if (_label != null)
 			_label.SetZOrder(z + 2);
@@ -93,56 +127,58 @@ public class MagicUIButton : MagicUIControl
 	protected Vector2 _margin;
 	protected override void initialize(JSONObject markup)
 	{
-		_sprite = gameObject.AddComponent<UISprite>();
-		_sprite.atlas = MagicUIManager.Instance.Skin.Atlas;
-		_sprite.type = UISprite.Type.Sliced;
-		NGUITools.AddWidgetCollider(gameObject);
-		_sprite.autoResizeBoxCollider = true;
-		_sprite.color = MagicUIManager.Instance.Skin.PrimaryColor;
+		_chrome = Vector2.one;
+		_margin = Vector2.zero;
 
 		_key = markup.GetStringSafely("name", "");
 
-		bool? noText = markup.GetBoolSafely("noText", false);
+		bool? iconOnly = markup.GetBoolSafely("iconOnly", false);
 
-		if (!noText.HasValue || !noText.Value)
-		{
-			_label = MagicUILabel.CreateAsComponent(gameObject);
-			_label.Initialize(MagicUIManager.Instance.GetString(_key), true, markup);
-		}
-		else
+		if (iconOnly.HasValue && iconOnly.Value)
 		{
 			JSONObject icon = markup["icon"];
 			if (icon != null)
 			{
-				_icon = MagicUIImage.CreateAsChild(gameObject);
+				_icon = MagicUIImage.CreateAsComponent(gameObject);
 				_icon.Initialize(icon);
 			}
 		}
-
-		JSONObject frameData = MagicUIManager.Instance.Skin.GetFrameData(ControlType.Button);
-		_sprite.spriteName = frameData["on"].str;
-
-		if (_label != null)
+		else
 		{
-			_label.Color = MagicUIManager.Instance.Skin.FontParameters.DefaultColor;
-			bool? invert = frameData.GetBoolSafely("fgInvert", false);
-			if (invert.HasValue && invert.Value)
-				_label.Color = MagicUIManager.Instance.Skin.FontParameters.AlternateColor;
+			_sprite = gameObject.AddComponent<UISprite>();
+			_sprite.atlas = MagicUIManager.Instance.Skin.Atlas;
+			_sprite.type = UISprite.Type.Sliced;
+			_sprite.autoResizeBoxCollider = true;
+			_sprite.color = MagicUIManager.Instance.Skin.PrimaryColor;
+			
+			_label = MagicUILabel.CreateAsComponent(gameObject);
+			_label.Initialize(MagicUIManager.Instance.GetString(_key), true, markup);
+			
+			JSONObject frameData = MagicUIManager.Instance.Skin.GetFrameData(ControlType.Button);
+			_sprite.spriteName = frameData["on"].str;
+			
+			if (_label != null)
+			{
+				_label.Color = MagicUIManager.Instance.Skin.FontParameters.DefaultColor;
+				bool? invert = frameData.GetBoolSafely("fgInvert", false);
+				if (invert.HasValue && invert.Value)
+					_label.Color = MagicUIManager.Instance.Skin.FontParameters.AlternateColor;
+			}
+			
+			UISpriteData data = MagicUIManager.Instance.Skin.Atlas.GetSprite(_sprite.spriteName);
+
+			if (frameData.keys.Contains("margin"))
+				_margin = frameData["margin"].GetVector2();
+			
+			if (frameData.keys.Contains("chrome"))
+			{
+				_chrome = frameData["chrome"].GetVector2();
+				_chrome.x = data.width / (data.width - _chrome.x);
+				_chrome.y = data.height / (data.height - _chrome.y);
+			}
 		}
 
-		UISpriteData data = MagicUIManager.Instance.Skin.Atlas.GetSprite(_sprite.spriteName);
-
-
-		if (frameData.keys.Contains("margin"))
-			_margin = frameData["margin"].GetVector2();
-
-		_chrome = Vector4.zero;
-
-		_chrome.x = frameData.GetFloatSafely("left", 0) + frameData.GetFloatSafely("right", 0);
-		_chrome.x = data.width / (data.width - _chrome.x);
-
-		_chrome.y = frameData.GetFloatSafely("top", 0) + frameData.GetFloatSafely("bottom", 0);
-		_chrome.y = data.height / (data.height - _chrome.y);
+		NGUITools.AddWidgetCollider(gameObject);
 	}
 	
 	public static MagicUIButton Create()

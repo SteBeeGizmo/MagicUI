@@ -22,6 +22,20 @@ public class MagicUISlider : MagicUIControl
 		return _level.ToString();
 	}
 
+	public override string Value
+	{
+		get
+		{
+			return baseValueHandler;
+		}
+		
+		set
+		{
+			baseValueHandler = value;
+		}
+	}
+	
+
 	protected override void controlFromValue(string val)
 	{
 		float parsed = _level;

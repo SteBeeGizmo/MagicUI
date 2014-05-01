@@ -28,8 +28,14 @@ public abstract class MagicUIControl : MonoBehaviour
 		}
 	}
 
-	public string DebugValue;
 	public virtual string Value
+	{
+		get { return null; }
+		set { /* Do nothing! */ }
+	}
+
+	public string DebugValue;
+	protected string baseValueHandler
 	{
 		get { return DebugValue; }
 		set
@@ -145,6 +151,8 @@ public abstract class MagicUIControl : MonoBehaviour
 
 	public static MagicUIControl CreateFromMarkup(string id, JSONObject markup, IMagicUIPanel page)
 	{
+		DebugManager.Log ("...{0}: {1}", id, markup);
+		
 		MagicUIControl.ControlType type = markup.GetControlType();
 
 		MagicUIControl control = null;

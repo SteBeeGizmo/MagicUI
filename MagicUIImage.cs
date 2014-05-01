@@ -18,6 +18,8 @@ public class MagicUIImage : MonoBehaviour
 		get { return _imageReady; }
 	}
 
+	protected bool _isChild;
+
 	public void SetExtents(Rect extents)
 	{
 		if (_imageReady)
@@ -127,11 +129,13 @@ public class MagicUIImage : MonoBehaviour
 			if (string.IsNullOrEmpty(frame))
 			{
 				frame = _missingFrame;
-				gameObject.name = frame;
+				if (_isChild)
+					gameObject.name = frame;
 			}
 			else
 			{
-				gameObject.name = frame;
+				if (_isChild)
+					gameObject.name = frame;
 
 				UISpriteData spriteData = MagicUIManager.Instance.Skin.Atlas.GetSprite(frame);
 				if (spriteData == null)
@@ -165,12 +169,15 @@ public class MagicUIImage : MonoBehaviour
 		child.transform.localPosition = Vector3.zero;
 		child.transform.localScale = Vector3.one;
 
-		return CreateAsComponent(child);
+		MagicUIImage result = CreateAsComponent(child);
+		result._isChild = true;
+		return result;
 	}
 	
 	public static MagicUIImage CreateAsComponent(GameObject me)
 	{
 		MagicUIImage result = me.AddComponent<MagicUIImage>();
+		result._isChild = false;
 		return result;
 	}
 }

@@ -82,6 +82,8 @@ public class MagicUIPage : MonoBehaviour, MagicUIControl.IMagicUIPanel
 	protected static int _nextPanelDepth = 1;
 	public static MagicUIPage CreateFromMarkup(string pageName, JSONObject markup)
 	{
+		DebugManager.Log ("Creating {0}...", pageName);
+
 		GameObject go = new GameObject();
 		go.name = pageName;
 
@@ -117,7 +119,7 @@ public class MagicUIPage : MonoBehaviour, MagicUIControl.IMagicUIPanel
 				else
 				{
 					// Long dimension is x
-					page._expectedSize.x = page._expectedSize.y / aspect;
+					page._expectedSize.x = page._expectedSize.y * aspect;
 				}
 			}
 			else
@@ -132,7 +134,7 @@ public class MagicUIPage : MonoBehaviour, MagicUIControl.IMagicUIPanel
 				else
 				{
 					// Short dimension is y
-					page._expectedSize.y = page._expectedSize.x * aspect;
+					page._expectedSize.y = page._expectedSize.x / aspect;
 				}
 			}
 			page._extraSize = pageSize - page._expectedSize;

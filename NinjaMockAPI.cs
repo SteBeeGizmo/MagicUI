@@ -34,6 +34,7 @@ public class NinjaMockAPI : MonoBehaviour, MagicUIManager.IMagicUISource
 		byte[] postData = Encoding.UTF8.GetBytes(postText);
 		
 		WWW request = new WWW(_kGetProjectDataURL, postData, headers);
+		DebugManager.Log ("Fetch {0}", _kGetProjectDataURL);
 		yield return request;
 		
 		JSONObject response = null;
@@ -56,11 +57,43 @@ public class NinjaMockAPI : MonoBehaviour, MagicUIManager.IMagicUISource
 	
 	protected IEnumerator landingPage(string url, MagicUIManager.GenericCallback<JSONObject> callback)
 	{
-		WWW request = new WWW(url);
-		yield return request;
-		
 		string id = null;
 		string auth = null;
+		string body = null;
+
+#if UNIWEB
+		DebugManager.Log ("Fetch {0} via UniWeb", url);
+		var request = new HTTP.Request("GET", url);
+		yield return request.Send();
+
+		if (request.exception != null)
+			callback(request.exception.Message, null);
+		else
+		{
+			if (request.response.headers.Contains("SET-COOKIE"))
+			{
+				foreach (string cookie in request.response.headers.GetAll("SET-COOKIE"))
+				{
+					if (cookie.StartsWith(".ASPXAUTH"))
+					{
+						auth = cookie.Substring(0, auth.IndexOf(";"));;
+						body = request.response.Text;
+						break;
+					}
+				}
+
+				if (auth == null)
+					callback("COOKIE NOT FOUND", null);
+			}
+		}
+
+
+
+#else
+		DebugManager.Log ("Fetch {0} via WWW", url);
+
+		WWW request = new WWW(url);
+		yield return request;
 		
 		if (!string.IsNullOrEmpty(request.error))
 		{
@@ -72,30 +105,35 @@ public class NinjaMockAPI : MonoBehaviour, MagicUIManager.IMagicUISource
 			{
 				auth = request.responseHeaders["SET-COOKIE"];
 				if (!auth.StartsWith(".ASPXAUTH"))
+				{
+					Debug.Log (request.responseHeaders["SET-COOKIE"]);
 					callback("COOKIE BURIED", null);
+				}
 				else
 				{
 					auth = auth.Substring(0, auth.IndexOf(";"));
-					
-					string body = request.text;
-					int start = body.IndexOf(_kProjectIdMarker);
-					if (start >= 0)
-					{
-						int count = body.IndexOf(',', start + _kProjectIdMarker.Length) - (start + _kProjectIdMarker.Length);
-						if (count >= 0)
-						{
-							id = body.Substring(start + _kProjectIdMarker.Length, count).Trim();
-						}
-					}
-					
-					if (id == null)
-						callback("BODY PARSE FAILED", null);
+					body = request.text;
 				}
 			}
-			
-			if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(auth))
-				yield return StartCoroutine(loadProject(id, auth, callback));
 		}
+#endif
+		if (body != null)
+		{
+			int start = body.IndexOf(_kProjectIdMarker);
+			if (start >= 0)
+			{
+				int count = body.IndexOf(',', start + _kProjectIdMarker.Length) - (start + _kProjectIdMarker.Length);
+				if (count >= 0)
+				{
+					id = body.Substring(start + _kProjectIdMarker.Length, count).Trim();
+				}
+			}
+		}
+		if (id == null)
+			callback("BODY PARSE FAILED", null);
+
+		if (!string.IsNullOrEmpty(id) && !string.IsNullOrEmpty(auth))
+			yield return StartCoroutine(loadProject(id, auth, callback));
 	}
 
 	public void Setup(MagicUIManager.GenericCallback<bool> callback)
@@ -215,6 +253,7 @@ public class NinjaMockAPI : MonoBehaviour, MagicUIManager.IMagicUISource
 
 	protected JSONObject parseButton(JSONObject raw, Vector2 containerSize)
 	{
+		Debug.Log (raw);
 		JSONObject control = parseCommon(raw, containerSize, MagicUIControl.ControlType.Button);
 		
 		string controlName = raw.GetStringSafely("text", null);
@@ -230,7 +269,7 @@ public class NinjaMockAPI : MonoBehaviour, MagicUIManager.IMagicUISource
 			control.AddField("icon", parseSubIcon("image", icon, raw, mySize));
 		}
 
-		control.AddField("noText", (raw.GetStringSafely("type", null) == "imageOnly"));
+		control.AddField("iconOnly", (raw.GetStringSafely("type", null) == "imageOnly"));
 
 		return control;
 	}
@@ -373,6 +412,8 @@ public class NinjaMockAPI : MonoBehaviour, MagicUIManager.IMagicUISource
 
 	protected JSONObject parseToIntermediateFormat(JSONObject raw, int firstPageId)
 	{
+		Debug.Log (raw);
+
 		JSONObject parsed = new JSONObject(JSONObject.Type.OBJECT);
 		JSONObject pages = new JSONObject(JSONObject.Type.OBJECT);
 		parsed.AddField("pages", pages);
@@ -400,5 +441,39 @@ public class NinjaMockAPI : MonoBehaviour, MagicUIManager.IMagicUISource
 		}
 		
 		return parsed;
+	}
+
+	void Start()
+	{
+		//StartCoroutine(doTest());
+	}
+
+	protected IEnumerator doTest()
+	{
+		bool uniweb = true;
+		
+		string url = "http://ninjamock.com/s/pzlltf";
+		//string url = "http://www.mit.edu";
+		
+		if (uniweb)
+		{
+			var request = new HTTP.Request("GET", url);
+			yield return request.Send();
+			
+			if (request.exception != null)
+				Debug.Log("FAIL: " + request.exception.Message);
+			else
+				Debug.Log("WIN: " + request.response.Text);
+		}
+		else
+		{
+			WWW request = new WWW(url);
+			yield return request;
+			
+			if (!string.IsNullOrEmpty(request.error))
+				Debug.Log("FAIL: " + request.error);
+			else
+				Debug.Log("WIN: " + request.text);
+		}
 	}
 }
