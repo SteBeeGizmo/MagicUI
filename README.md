@@ -27,6 +27,8 @@ Getting started with MagicUI isn't particularly difficult, but it's got a number
 
 #### Copy Code
 
+REST OF THIS FILE IS ALL TODO. WATCH THIS SPACE!
+
 #### Create a Skin
 
 A MagicUI skin is an NGUI atlas with an additionc component.
